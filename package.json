@@ -1,0 +1,30 @@
+{
+  "name": "babel-get-export-sources",
+  "version": "0.1.0",
+  "description": "get all local module files that are exported by a package",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Xiphe/babel-get-export-sources.git"
+  },
+  "keywords": [
+    "es6",
+    "export",
+    "babel",
+    "doc"
+  ],
+  "author": "Hannes Diercks <babel-get-export-sources@xiphe.net>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Xiphe/babel-get-export-sources/issues"
+  },
+  "homepage": "https://github.com/Xiphe/babel-get-export-sources#readme",
+  "devDependencies": {
+    "eslint": "3.16.1",
+    "eslint-config-airbnb-base": "11.1.0",
+    "eslint-plugin-import": "2.2.0"
+  }
+}
