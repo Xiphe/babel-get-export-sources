@@ -19,6 +19,7 @@ module.exports = function getExportSource(entry, babel, babelConfig) {
           return ret;
         }
 
+        /* istanbul ignore else */
         if (expt.node.type === 'ExportNamedDeclaration') {
           return expt.node.specifiers.reduce((result, specifier) => {
             const member = {};
@@ -27,6 +28,8 @@ module.exports = function getExportSource(entry, babel, babelConfig) {
           }, {});
         }
 
+        /* This should not happen and tests for that case would be absurd :) */
+        /* istanbul ignore next */
         return Promise.reject(new Error('unexpected node type', expt.node.type));
       });
   }
@@ -40,10 +43,13 @@ module.exports = function getExportSource(entry, babel, babelConfig) {
       return [node.declaration.id.name];
     }
 
+    /* istanbul ignore else */
     if (node.declaration.type === 'VariableDeclaration') {
       return node.declaration.declarations.map(decl => decl.id.name);
     }
 
+    /* This should not happen and tests for that case would be absurd :) */
+    /* istanbul ignore next */
     throw new Error('unknown declaration');
   }
 

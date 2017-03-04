@@ -2,7 +2,7 @@
   "name": "babel-get-export-sources",
   "version": "0.1.0",
   "description": "get all local module files that are exported by a package",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
