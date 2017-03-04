@@ -1,15 +1,16 @@
 {
   "name": "babel-get-export-sources",
-  "version": "0.1.0",
+  "version": "0.0.0-development",
   "description": "get all local module files that are exported by a package",
   "main": "src/index.js",
   "scripts": {
     "test": "JASMINE_CONFIG_PATH=jasmine.config.json jasmine",
-    "cover": "JASMINE_CONFIG_PATH=jasmine.config.json istanbul cover $(npm bin)/jasmine"
+    "cover": "JASMINE_CONFIG_PATH=jasmine.config.json istanbul cover $(npm bin)/jasmine",
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/Xiphe/babel-get-export-sources.git"
+    "url": "https://github.com/Xiphe/babel-get-export-sources.git"
   },
   "keywords": [
     "es6",
@@ -34,6 +35,7 @@
     "eslint-plugin-jsx-a11y": "4.0.0",
     "eslint-plugin-react": "6.10.0",
     "istanbul": "0.4.5",
-    "jasmine": "2.5.3"
+    "jasmine": "2.5.3",
+    "semantic-release": "6.3.2"
   }
 }
