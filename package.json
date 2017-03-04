@@ -4,7 +4,8 @@
   "description": "get all local module files that are exported by a package",
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "JASMINE_CONFIG_PATH=jasmine.config.json jasmine",
+    "cover": "JASMINE_CONFIG_PATH=jasmine.config.json istanbul cover $(npm bin)/jasmine"
   },
   "repository": {
     "type": "git",
@@ -23,8 +24,16 @@
   },
   "homepage": "https://github.com/Xiphe/babel-get-export-sources#readme",
   "devDependencies": {
+    "babel-core": "6.23.1",
+    "babel-preset-es2015": "6.22.0",
+    "babel-preset-es2016": "6.22.0",
     "eslint": "3.16.1",
+    "eslint-config-airbnb": "14.1.0",
     "eslint-config-airbnb-base": "11.1.0",
-    "eslint-plugin-import": "2.2.0"
+    "eslint-plugin-import": "2.2.0",
+    "eslint-plugin-jsx-a11y": "4.0.0",
+    "eslint-plugin-react": "6.10.0",
+    "istanbul": "0.4.5",
+    "jasmine": "2.5.3"
   }
 }
