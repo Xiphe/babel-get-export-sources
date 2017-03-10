@@ -2,11 +2,75 @@
 
 const path = require('path');
 
+function hasRelativeSource(p) {
+  return p.node.source && p.node.source.value && p.node.source.value.indexOf('.') === 0;
+}
+
 module.exports = function getExportSource(entry, babel, babelConfig) {
   function buildBabelConfig(plugin) {
     return Object.assign({}, babelConfig, {
       plugins: [plugin].concat(babelConfig.plugins),
     });
+  }
+
+  function findInScope(scope, name) {
+    if (!scope.hasBinding(name)) {
+      return undefined;
+    }
+
+    if (scope.bindings[name]) {
+      return scope.bindings[name].path;
+    }
+
+    if (!scope.parent) {
+      return undefined;
+    }
+
+    return findInScope(scope.parent, name);
+  }
+
+  function resolveIdentifyer(p) {
+    if (p.isIdentifier()) {
+      const dec = findInScope(p.scope, p.get('name').node);
+
+      return resolveIdentifyer(dec);
+    }
+
+    if (p.isFunctionDeclaration()) {
+      const rets = [];
+
+      p.traverse({
+        ReturnStatement(subP) {
+          rets.push(subP);
+        },
+      });
+
+      return rets.reduce((result, ret) => {
+        return result.concat(resolveIdentifyer(ret.get('argument')));
+      }, []);
+    }
+
+    if (p.isVariableDeclarator()) {
+      return resolveIdentifyer(p.get('init'));
+    }
+
+    if (p.isDeclaration()) {
+      return resolveIdentifyer(p.get('declaration'));
+    }
+
+    if (p.isCallExpression()) {
+      return p.get('arguments').reduce((result, arg) => {
+        return result.concat(resolveIdentifyer(arg));
+      }, []).concat(resolveIdentifyer(p.get('callee')));
+    }
+
+    return p;
+  }
+
+  function flatten(arr) {
+    return arr.reduce((result, impts) => {
+      return result.concat(impts);
+    }, []);
   }
 
   function findSourceFiles(expt) {
@@ -17,6 +81,12 @@ module.exports = function getExportSource(entry, babel, babelConfig) {
           delete ret.default;
 
           return ret;
+        }
+
+        if (expt.node.type === 'ExportDefaultDeclaration' && expt.indirect) {
+          return {
+            default: childExpts[expt.indirect.imported.name],
+          };
         }
 
         /* istanbul ignore else */
@@ -32,6 +102,23 @@ module.exports = function getExportSource(entry, babel, babelConfig) {
         /* istanbul ignore next */
         return Promise.reject(new Error('unexpected node type', expt.node.type));
       });
+  }
+
+  function resolveToExport(p, file) {
+    const imports = [].concat(resolveIdentifyer(p)).filter((resP) => {
+      return (resP.isImportDeclaration() ||
+        resP.isImportDefaultSpecifier() ||
+        resP.isImportSpecifier()
+      ) && hasRelativeSource(resP.parentPath);
+    });
+
+    return flatten(imports).map((imptP) => {
+      return {
+        node: p.node,
+        indirect: imptP.node,
+        src: require.resolve(path.resolve(path.dirname(file), imptP.parentPath.node.source.value)),
+      };
+    });
   }
 
   function getDeclaredNames(node) {
@@ -55,12 +142,13 @@ module.exports = function getExportSource(entry, babel, babelConfig) {
 
   function getExportPaths(file) {
     return new Promise((resolve, reject) => {
-      const foreignExports = [];
+      const directExports = [];
+      const indirectExports = [];
       const localExports = {};
 
-      function registerExport(p) {
-        if (p.node.source && p.node.source.value && p.node.source.value.indexOf('.') === 0) {
-          foreignExports.push({
+      function registerDirectExport(p) {
+        if (hasRelativeSource(p)) {
+          directExports.push({
             node: p.node,
             src: require.resolve(path.resolve(path.dirname(file), p.node.source.value)),
           });
@@ -71,16 +159,18 @@ module.exports = function getExportSource(entry, babel, babelConfig) {
         return {
           visitor: {
             ExportNamedDeclaration(p) {
-              if (!p.node.source) {
-                getDeclaredNames(p.node).forEach((name) => {
-                  localExports[name] = file;
-                });
-              } else {
-                registerExport(p);
+              if (p.node.source) {
+                registerDirectExport(p);
+                return;
               }
+
+              getDeclaredNames(p.node).forEach((name) => {
+                localExports[name] = file;
+              });
             },
-            ExportAllDeclaration: registerExport,
-            ExportDefaultDeclaration() {
+            ExportAllDeclaration: registerDirectExport,
+            ExportDefaultDeclaration(p) {
+              indirectExports.push(resolveToExport(p, file));
               localExports.default = file;
             },
           },
@@ -93,14 +183,15 @@ module.exports = function getExportSource(entry, babel, babelConfig) {
         }
 
         return Promise.all(
-          foreignExports.map(findSourceFiles)
+          directExports.concat(flatten(indirectExports))
+            .map(findSourceFiles)
         ).then((results) => {
           return results.reduce((result, r) => {
             return Object.assign({}, result, r);
           }, {});
         })
         .then((resolvedForeignImports) => {
-          const ret = Object.assign({}, resolvedForeignImports, localExports);
+          const ret = Object.assign({}, localExports, resolvedForeignImports);
           return resolve(Object.keys(ret).reduce((r, key) => {
             if (ret[key]) {
               r[key] = ret[key]; // eslint-disable-line

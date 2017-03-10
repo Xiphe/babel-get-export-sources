@@ -174,7 +174,29 @@ describe('babel-get-export-sources', () => {
   it('ignores exports of other modules', (done) => {
     getExportSources('moduleProxy.js')
       .then((result) => {
-        expect(result).toEqual(prependPaths({}));
+        expect(result).toEqual({});
+        done();
+      })
+      .catch(fail);
+  });
+
+  it('finds indirect proxy exports', (done) => {
+    getExportSources('indirectDefaultProxy.js')
+      .then((result) => {
+        expect(result).toEqual(prependPaths({
+          default: 'constants.js',
+        }));
+        done();
+      })
+      .catch(fail);
+  });
+
+  it('finds indirect foreign exports', (done) => {
+    getExportSources('IndirectComponent.js')
+      .then((result) => {
+        expect(result).toEqual(prependPaths({
+          default: 'function.js',
+        }));
         done();
       })
       .catch(fail);
