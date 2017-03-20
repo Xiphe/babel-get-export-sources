@@ -199,7 +199,8 @@ module.exports = function getExportSource(entry, babel, babelConfig) {
 
             return r;
           }, {}));
-        });
+        })
+        .catch(reject);
       });
     });
   }
