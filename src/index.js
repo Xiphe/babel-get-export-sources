@@ -33,7 +33,9 @@ module.exports = function getExportSource(entry, babel, babelConfig) {
     if (p.isIdentifier()) {
       const dec = findInScope(p.scope, p.get('name').node);
 
-      return resolveIdentifyer(dec);
+      if (dec) {
+        return resolveIdentifyer(dec);
+      }
     }
 
     if (p.isFunctionDeclaration()) {
