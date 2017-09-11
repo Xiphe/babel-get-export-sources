@@ -7,7 +7,7 @@ const babel = require('babel-core');
 const babelGetExportSources = require('../src');
 
 const babelConfig = {
-  presets: ['es2015', 'es2016'],
+  presets: ['es2015', 'es2016', 'flow'],
   plugins: [],
 };
 
@@ -196,6 +196,17 @@ describe('babel-get-export-sources', () => {
       .then((result) => {
         expect(result).toEqual(prependPaths({
           default: 'function.js',
+        }));
+        done();
+      })
+      .catch(fail);
+  });
+
+  it('finds exported type alias', (done) => {
+    getExportSources('typeAlias.js')
+      .then((result) => {
+        expect(result).toEqual(prependPaths({
+          Foo: 'typeAlias.js',
         }));
         done();
       })
