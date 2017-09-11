@@ -137,6 +137,9 @@ module.exports = function getExportSource(entry, babel, babelConfig) {
       return node.declaration.declarations.map(decl => decl.id.name);
     }
 
+    if (node.declaration.type === 'TypeAlias') {
+      return [node.declaration.id.name];
+    }
     /* This should not happen and tests for that case would be absurd :) */
     /* istanbul ignore next */
     throw new Error('unknown declaration');
