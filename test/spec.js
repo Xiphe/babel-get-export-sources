@@ -93,6 +93,17 @@ describe('babel-get-export-sources', () => {
       .catch(fail);
   });
 
+  it('finds local named class exports of a file', (done) => {
+    getExportSources('class.js')
+      .then((result) => {
+        expect(result).toEqual(prependPaths({
+          Foo: 'class.js',
+        }));
+        done();
+      })
+      .catch(fail);
+  });
+
   it('finds foreign named exports of a file', (done) => {
     getExportSources('allConstantsProxy.js')
       .then((result) => {
